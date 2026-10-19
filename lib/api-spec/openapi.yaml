@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: career
+    description: AI-powered career guidance
 paths:
   /healthz:
     get:
@@ -24,6 +26,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /career/analyze:
+    post:
+      operationId: analyzeCareer
+      tags: [career]
+      summary: Analyze a student's resume and goals
+      description: Returns career matches, skill gaps, learning recommendations, and a personalized roadmap.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CareerAnalysisInput"
+      responses:
+        "200":
+          description: Career analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CareerAnalysis"
+        "400":
+          description: Invalid analysis request
+        "502":
+          description: Career analysis provider could not complete the request
 components:
   schemas:
     HealthStatus:
@@ -33,4 +58,133 @@ components:
           type: string
       required:
         - status
+    CareerAnalysisInput:
+      type: object
+      properties:
+        resumeText:
+          type: string
+          minLength: 80
+          maxLength: 24000
+        interests:
+          type: array
+          items:
+            type: string
+            maxLength: 80
+          maxItems: 12
+        targetRole:
+          type: string
+          maxLength: 120
+        education:
+          type: string
+          maxLength: 160
+      required: [resumeText, interests]
+    CareerSkill:
+      type: object
+      properties:
+        name:
+          type: string
+        level:
+          type: string
+          enum: [Beginner, Intermediate, Advanced]
+      required: [name, level]
+    CareerMatch:
+      type: object
+      properties:
+        title:
+          type: string
+        matchScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        summary:
+          type: string
+        skillsMatched:
+          type: array
+          items:
+            type: string
+        skillsToBuild:
+          type: array
+          items:
+            type: string
+      required: [title, matchScore, summary, skillsMatched, skillsToBuild]
+    LearningRecommendation:
+      type: object
+      properties:
+        title:
+          type: string
+        provider:
+          type: string
+        category:
+          type: string
+        duration:
+          type: string
+        url:
+          type: string
+        reason:
+          type: string
+      required: [title, provider, category, duration, url, reason]
+    RoadmapTask:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+      required: [title, description]
+    RoadmapPhase:
+      type: object
+      properties:
+        title:
+          type: string
+        timeframe:
+          type: string
+        description:
+          type: string
+        tasks:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoadmapTask"
+      required: [title, timeframe, description, tasks]
+    CareerAnalysis:
+      type: object
+      properties:
+        profileSummary:
+          type: string
+        resumeScore:
+          type: integer
+          minimum: 0
+          maximum: 100
+        strengths:
+          type: array
+          items:
+            type: string
+        improvements:
+          type: array
+          items:
+            type: string
+        detectedSkills:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareerSkill"
+        careerMatches:
+          type: array
+          items:
+            $ref: "#/components/schemas/CareerMatch"
+        learningRecommendations:
+          type: array
+          items:
+            $ref: "#/components/schemas/LearningRecommendation"
+        roadmap:
+          type: array
+          items:
+            $ref: "#/components/schemas/RoadmapPhase"
+      required:
+        - profileSummary
+        - resumeScore
+        - strengths
+        - improvements
+        - detectedSkills
+        - careerMatches
+        - learningRecommendations
+        - roadmap
 
